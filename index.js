@@ -46,7 +46,7 @@ module.exports = Resource;
  * @api private
  */
 
-function Resource(name, actions, app) {
+function Resource(name, actions, app, routes) {
   this.name = name;
   this.app = app;
   this.routes = {};
@@ -56,6 +56,13 @@ function Resource(name, actions, app) {
   this.format = actions.format;
   this.id = actions.id || this.defaultId;
   this.param = ':' + this.id;
+  
+  //custom routes
+  if (routes) {
+    for (var method in routes) {
+      for (var path in routes[method]) this.map(method, path, routes[method][path]); 
+    }
+  }
 
   // default actions
   for (var i = 0, key; i < orderedActions.length; ++i) {
@@ -261,13 +268,13 @@ methods.concat(['del', 'all']).forEach(function(method){
  * @api public
  */
 
-app.resource = function(name, actions, opts){
+app.resource = function(name, actions, opts, routes){
   var options = actions || {};
   if ('object' == typeof name) actions = name, name = null;
   if (options.id) actions.id = options.id;
   this.resources = this.resources || {};
-  if (!actions) return this.resources[name] || new Resource(name, null, this);
+  if (!actions) return this.resources[name] || new Resource(name, null, this, routes);
   for (var key in opts) options[key] = opts[key];
-  var res = this.resources[name] = new Resource(name, actions, this);
+  var res = this.resources[name] = new Resource(name, actions, this, routes);
   return res;
 };
